@@ -5,7 +5,7 @@
 
 ## 🔗 바로 사용하기
 
-👉 **https://아이디.github.io/저장소이름/**
+👉 https://wiseungheyon.github.io/gym-log/
 
 PC와 스마트폰 브라우저에서 모두 사용할 수 있고, 설치할 필요가 없습니다.
 
