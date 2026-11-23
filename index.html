@@ -4,171 +4,335 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>헬스 운동 기록 & 1RM 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* ===== 색: 국제 규격 원판 색 + 초크/고무 바닥 ===== */
   :root {
-    --bg: #f4f5f7;
-    --card: #ffffff;
-    --text: #1f2328;
-    --sub: #6b7280;
-    --line: #e5e7eb;
-    --main: #ea580c;        /* 근력 */
-    --main-soft: #fff1e8;
-    --cardio: #0e7490;      /* 유산소 */
-    --cardio-soft: #e6f6f9;
-    --danger: #dc2626;
+    --chalk: #eef0f3;      /* 배경 */
+    --paper: #ffffff;      /* 입력 영역 */
+    --rubber: #22252b;     /* 고무 바닥 (상단, 글자) */
+    --steel: #9aa1ab;      /* 바벨 봉 */
+    --muted: #646b76;
+    --line: #d9dde3;
+    --red: #d7263d;        /* 25kg 원판, 근력 */
+    --blue: #1e5bc6;       /* 20kg 원판 */
+    --yellow: #f2b705;     /* 15kg 원판 */
+    --green: #1f9d55;      /* 10kg 원판, 유산소 */
+    --display: "Black Han Sans", "Malgun Gothic", sans-serif;
+    --body: "Noto Sans KR", "Malgun Gothic", "맑은 고딕", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Pretendard", "Malgun Gothic", "맑은 고딕", sans-serif;
-    font-size: 15px;
+    background: var(--chalk);
+    color: var(--rubber);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.55;
   }
-  header {
-    background: #1f2328;
-    color: #fff;
-    padding: 20px 24px;
-  }
-  header h1 { margin: 0; font-size: 22px; }
-  header p { margin: 4px 0 0; color: #c9ccd1; font-size: 13px; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 
+  /* ===== 상단 + 바벨 영역 ===== */
+  .top {
+    background: var(--rubber);
+    color: #fff;
+    padding: 28px 20px 0;
+  }
+  .top-inner { max-width: 1080px; margin: 0 auto; }
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(30px, 5vw, 46px);
+    line-height: 1.1;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .top p { margin: 6px 0 0; color: #b8bdc6; font-size: 14px; }
+  .bw {
+    display: flex; align-items: center; gap: 10px;
+    background: #2e323a; border-radius: 10px; padding: 8px 12px;
+  }
+  .bw label { font-size: 14px; color: #c9cdd4; white-space: nowrap; }
+  .bw input {
+    width: 76px; background: transparent; border: none; border-bottom: 2px solid #59606b;
+    color: #fff; font-family: var(--display); font-size: 22px; padding: 2px 0; text-align: right;
+  }
+  .bw input:focus { outline: none; border-bottom-color: var(--yellow); }
+  .bw span { color: #c9cdd4; }
+
+  .hero {
+    margin-top: 26px;
+    padding: 22px 0 30px;
+    border-top: 1px solid #353942;
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  @media (max-width: 720px) { .hero { grid-template-columns: 1fr; gap: 14px; } }
+  .hero .cap { font-size: 14px; color: #b8bdc6; }
+  .hero .num {
+    font-family: var(--display);
+    font-size: clamp(56px, 10vw, 88px);
+    line-height: 1;
+    margin-top: 4px;
+  }
+  .hero .num small { font-size: 0.38em; margin-left: 4px; color: #b8bdc6; }
+  .hero .who { margin-top: 8px; font-size: 15px; }
+  .hero .load { margin-top: 2px; font-size: 13px; color: #b8bdc6; }
+
+  /* ===== 바벨 그림 ===== */
+  .barbell { display: flex; align-items: center; justify-content: center; height: 150px; }
+  .barbell .shaft { height: 8px; background: var(--steel); flex: 1 1 auto; max-width: 380px; min-width: 50px; }
+  .barbell .sleeve { height: 14px; width: 40px; flex: none; background: #c3c8cf; border-radius: 2px; }
+  .barbell .collar { height: 26px; width: 7px; background: #c3c8cf; border-radius: 2px; }
+  .barbell .side { display: flex; align-items: center; gap: 2px; flex: none; }
+  .barbell .side.left { flex-direction: row-reverse; }
+  .plate { border-radius: 4px; box-shadow: inset 0 0 0 2px rgba(0,0,0,0.18); }
+  .p25 { background: var(--red); }
+  .p20 { background: var(--blue); }
+  .p15 { background: var(--yellow); }
+  .p10 { background: var(--green); }
+  .p5  { background: #f4f5f7; }
+  .p2-5 { background: var(--red); }
+  .p1-25 { background: #b8bec7; }
+  .barbell .plate.in { animation: slideIn 0.35s cubic-bezier(.2,.8,.3,1) both; }
+  .barbell .left .plate.in { animation-name: slideInL; }
+  @keyframes slideIn  { from { transform: translateX(40px); opacity: 0; } }
+  @keyframes slideInL { from { transform: translateX(-40px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .barbell .plate.in { animation: none; } }
+
+  /* 작은 바벨 (한쪽만) */
+  .mini { display: flex; align-items: center; height: 46px; }
+  .mini .shaft { flex: 1 1 auto; min-width: 20px; max-width: none; height: 5px; background: var(--steel); }
+  .mini .collar { width: 4px; height: 14px; background: #b0b6be; border-radius: 1px; }
+  .mini .plates { display: flex; align-items: center; gap: 1px; }
+  .mini .sleeve-end { width: 14px; height: 8px; background: #c3c8cf; border-radius: 0 2px 2px 0; }
+
+  /* ===== 본문 레이아웃 ===== */
   main {
     max-width: 1080px;
-    margin: 24px auto;
-    padding: 0 16px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
     display: grid;
-    grid-template-columns: 360px 1fr;
-    gap: 20px;
+    grid-template-columns: 380px 1fr;
+    gap: 36px;
+    align-items: start;
   }
-  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  @media (max-width: 880px) { main { grid-template-columns: 1fr; gap: 28px; } }
 
-  .card {
-    background: var(--card);
+  h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 24px;
+    margin: 0 0 14px;
+  }
+
+  /* 입력 패널 */
+  .panel {
+    background: var(--paper);
+    border-radius: 16px;
+    padding: 22px;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 18px;
-    margin-bottom: 20px;
   }
-  .card h2 { margin: 0 0 14px; font-size: 17px; }
+  .panel + .panel { margin-top: 24px; }
 
-  label { display: block; font-size: 13px; color: var(--sub); margin: 10px 0 4px; }
-  input, select {
+  label.f { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 5px; }
+  .panel input, .panel select {
     width: 100%;
-    padding: 9px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 16px;   /* 16px 미만이면 아이폰에서 입력할 때 화면이 확대됨 */
+    padding: 11px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    font-size: 16px;
     font-family: inherit;
+    background: #fff;
+    color: var(--rubber);
   }
-  input:focus, select:focus { outline: 2px solid var(--main); border-color: transparent; }
-  .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .panel input:focus, .panel select:focus { outline: none; border-color: var(--rubber); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .hidden { display: none !important; }
 
-  button {
-    border: none;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 15px;
-    font-family: inherit;
+  /* 근력/유산소 선택 */
+  .seg {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--chalk); border-radius: 12px; padding: 4px; gap: 4px;
+  }
+  .seg button {
+    border: none; border-radius: 9px; padding: 10px; font-size: 15px; font-weight: 700;
+    font-family: inherit; color: var(--muted); background: transparent; cursor: pointer;
+  }
+  .seg button.active.strength { background: var(--red); color: #fff; }
+  .seg button.active.cardio { background: var(--green); color: #fff; }
+
+  .go {
+    width: 100%; margin-top: 18px; border: none; border-radius: 12px; padding: 14px;
+    background: var(--rubber); color: #fff; font-size: 17px; font-weight: 700; font-family: inherit;
     cursor: pointer;
   }
-  .btn-main { background: var(--main); color: #fff; width: 100%; margin-top: 14px; font-weight: bold; }
-  .btn-main:hover { filter: brightness(0.93); }
-  .btn-small { background: #f3f4f6; color: var(--text); padding: 6px 10px; font-size: 13px; }
-  .btn-del { background: none; color: var(--danger); padding: 4px 8px; font-size: 13px; }
+  .go:hover { background: #000; }
+  .go:active { transform: translateY(1px); }
 
-  /* 근력 / 유산소 선택 탭 */
-  .type-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px; }
-  .type-tabs button { background: #f3f4f6; color: var(--sub); }
-  .type-tabs button.active.strength { background: var(--main); color: #fff; }
-  .type-tabs button.active.cardio { background: var(--cardio); color: #fff; }
-  .hidden { display: none; }
-
-  .msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
-  .msg.error { color: var(--danger); }
-  .msg.ok { color: #15803d; }
-
-  /* 통계 */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  @media (max-width: 600px) { .stats { grid-template-columns: 1fr 1fr; } }
-  .stat { background: #f9fafb; border-radius: 8px; padding: 12px; }
-  .stat .label { font-size: 12px; color: var(--sub); }
-  .stat .value { font-size: 20px; font-weight: bold; margin-top: 4px; }
-  .stat .unit { font-size: 13px; font-weight: normal; color: var(--sub); }
-
-  /* 기록 목록 */
-  .list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .list-head h2 { margin: 0; }
-  .filter button { background: #f3f4f6; color: var(--sub); padding: 6px 10px; font-size: 13px; }
-  .filter button.active { background: #1f2328; color: #fff; }
-  ul.records { list-style: none; margin: 0; padding: 0; }
-  ul.records li {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 4px;
-    border-bottom: 1px solid var(--line);
-  }
-  .badge { font-size: 12px; font-weight: bold; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
-  .badge.strength { background: var(--main-soft); color: var(--main); }
-  .badge.cardio { background: var(--cardio-soft); color: var(--cardio); }
-  .rec-body { flex: 1; }
-  .rec-name { font-weight: bold; }
-  .rec-detail { font-size: 13px; color: var(--sub); margin-top: 2px; }
-  .empty { color: var(--sub); text-align: center; padding: 24px 0; }
+  .msg { font-size: 14px; margin-top: 10px; min-height: 22px; }
+  .msg.error { color: var(--red); }
+  .msg.ok { color: var(--green); }
 
   /* 1RM 결과 */
-  .result { margin-top: 14px; display: none; }
-  .result.show { display: block; }
-  .big { font-size: 28px; font-weight: bold; color: var(--main); }
-  .bar-row { display: grid; grid-template-columns: 44px 1fr 70px; align-items: center; gap: 8px; margin-top: 8px; font-size: 14px; }
-  .bar { height: 12px; background: #f3f4f6; border-radius: 6px; overflow: hidden; }
-  .bar > div { height: 100%; background: var(--main); border-radius: 6px; }
-  .bar-row .kg { text-align: right; font-weight: bold; }
+  .rm-result { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .rm-top { display: flex; align-items: baseline; justify-content: space-between; }
+  .rm-top .cap { font-size: 14px; color: var(--muted); }
+  .rm-top .val { font-family: var(--display); font-size: 40px; line-height: 1; }
+  .rm-top .val small { font-size: 18px; margin-left: 2px; color: var(--muted); }
+  .rm-goal { margin: 14px 0 4px; font-weight: 700; }
+  .rm-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eef0f3;
+  }
+  .rm-row:last-child { border-bottom: none; }
+  .rm-row .pct { font-weight: 700; color: var(--muted); }
+  .rm-row .kg { text-align: right; }
+  .rm-row .kg b { font-family: var(--display); font-weight: 400; font-size: 22px; }
+  .rm-row .kg div { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-  footer { text-align: center; color: var(--sub); font-size: 12px; padding: 10px 0 30px; }
+  /* 통계 */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 3px solid var(--rubber);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 34px;
+  }
+  .stat { padding: 14px 4px 16px; }
+  .stat + .stat { border-left: 1px solid var(--line); padding-left: 16px; }
+  .stat .cap { font-size: 14px; color: var(--muted); }
+  .stat .v { font-family: var(--display); font-size: 34px; line-height: 1.1; margin-top: 4px; }
+  .stat .v small { font-size: 15px; color: var(--muted); margin-left: 2px; font-family: var(--body); }
+  @media (max-width: 480px) {
+    .stat .v { font-size: 26px; }
+    .stat + .stat { padding-left: 10px; }
+  }
+
+  /* 기록 */
+  .rec-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .rec-head h2 { margin: 0; }
+  .filters { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filters button {
+    border: 1.5px solid var(--line); background: transparent; color: var(--muted);
+    border-radius: 99px; padding: 5px 12px; font-size: 14px; font-family: inherit; cursor: pointer;
+  }
+  .filters button.active { background: var(--rubber); border-color: var(--rubber); color: #fff; }
+  .filters .clear { border-color: transparent; color: var(--red); }
+
+  ul.records { list-style: none; margin: 0; padding: 0; }
+  ul.records li {
+    display: grid;
+    grid-template-columns: 6px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 12px 12px 12px 0;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .edge { align-self: stretch; margin: -12px 0; }
+  .edge.strength { background: var(--red); }
+  .edge.cardio { background: var(--green); }
+  .rec-name { font-weight: 700; font-size: 17px; }
+  .rec-kind { font-size: 13px; font-weight: 700; margin-right: 6px; }
+  .rec-kind.strength { color: var(--red); }
+  .rec-kind.cardio { color: var(--green); }
+  .rec-detail { font-size: 14px; color: var(--muted); margin-top: 2px; }
+  .rec-detail b { color: var(--rubber); }
+  .del {
+    border: none; background: transparent; color: var(--muted); font-size: 14px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer; font-family: inherit;
+  }
+  .del:hover { background: #fdecee; color: var(--red); }
+
+  .empty {
+    background: transparent !important;
+    border: 2px dashed var(--line);
+    display: block !important;
+    text-align: center;
+    color: var(--muted);
+    padding: 30px 16px !important;
+  }
+
+  footer { max-width: 1080px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 13px; }
+  footer .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+  footer .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  footer .legend i { width: 10px; height: 14px; border-radius: 2px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🏋️ 헬스 운동 기록 & 1RM 계산기</h1>
-  <p>1주차 C++ 콘솔 프로그램을 웹 버전으로 만든 프로그램입니다 · PC와 스마트폰에서 사용 가능</p>
+<header class="top">
+  <div class="top-inner">
+    <div class="top-row">
+      <div>
+        <h1>헬스 운동 기록<br>& 1RM 계산기</h1>
+        <p>세트를 기록하면 1RM과 오늘 끼울 원판까지 계산해 줍니다.</p>
+      </div>
+      <div class="bw">
+        <label for="bodyWeight">내 체중</label>
+        <input type="number" id="bodyWeight" inputmode="decimal" value="75" min="20" max="300">
+        <span>kg</span>
+      </div>
+    </div>
+
+    <div class="hero" aria-live="polite">
+      <div>
+        <div class="cap">기록 중 최고 1RM</div>
+        <div class="num" id="heroNum">0<small>kg</small></div>
+        <div class="who" id="heroWho">근력 운동을 추가하면 여기에 올라갑니다.</div>
+        <div class="load" id="heroLoad"></div>
+      </div>
+      <div class="barbell" id="heroBar" aria-hidden="true"></div>
+    </div>
+  </div>
 </header>
 
 <main>
   <!-- 왼쪽: 입력 -->
   <section>
-    <div class="card">
-      <h2>내 정보</h2>
-      <label for="bodyWeight">체중 (kg) · 칼로리 계산에 사용</label>
-      <input type="number" id="bodyWeight" inputmode="decimal" value="75" min="20" max="300">
-    </div>
-
-    <div class="card">
+    <div class="panel">
       <h2>운동 추가</h2>
-      <div class="type-tabs">
+      <div class="seg" role="tablist">
         <button id="tabStrength" class="active strength" onclick="selectType('strength')">근력 운동</button>
         <button id="tabCardio" class="cardio" onclick="selectType('cardio')">유산소 운동</button>
       </div>
 
-      <label for="exName">운동 이름</label>
-      <input type="text" id="exName" placeholder="예) 벤치 프레스">
+      <label class="f" for="exName">운동 이름</label>
+      <input type="text" id="exName" placeholder="벤치 프레스">
 
-      <!-- 근력 입력 -->
       <div id="strengthInputs">
-        <div class="row">
-          <div><label for="weight">무게(kg)</label><input type="number" id="weight" inputmode="decimal" min="0"></div>
-          <div><label for="reps">횟수</label><input type="number" id="reps" inputmode="numeric" min="1"></div>
-          <div><label for="sets">세트</label><input type="number" id="sets" inputmode="numeric" min="1"></div>
+        <div class="grid3">
+          <div><label class="f" for="weight">무게(kg)</label><input type="number" id="weight" inputmode="decimal" min="0"></div>
+          <div><label class="f" for="reps">횟수</label><input type="number" id="reps" inputmode="numeric" min="1"></div>
+          <div><label class="f" for="sets">세트</label><input type="number" id="sets" inputmode="numeric" min="1"></div>
         </div>
       </div>
 
-      <!-- 유산소 입력 -->
       <div id="cardioInputs" class="hidden">
-        <div class="row2">
-          <div><label for="minutes">시간(분)</label><input type="number" id="minutes" inputmode="numeric" min="1"></div>
+        <div class="grid2">
+          <div><label class="f" for="minutes">시간(분)</label><input type="number" id="minutes" inputmode="numeric" min="1"></div>
           <div>
-            <label for="intensity">강도</label>
+            <label class="f" for="intensity">강도</label>
             <select id="intensity">
               <option value="1">가볍게 (걷기)</option>
               <option value="2" selected>보통 (조깅)</option>
@@ -178,29 +342,31 @@
         </div>
       </div>
 
-      <button class="btn-main" id="addBtn" onclick="addExercise()">추가하기</button>
-      <div class="msg" id="addMsg"></div>
+      <button class="go" id="addBtn" onclick="addExercise()">기록 추가</button>
+      <div class="msg" id="addMsg" aria-live="polite"></div>
     </div>
 
-    <div class="card">
-      <h2>1RM 계산 & 목표별 중량</h2>
-      <div class="row2">
-        <div><label for="rmWeight">들었던 무게(kg)</label><input type="number" id="rmWeight" inputmode="decimal" min="1"></div>
-        <div><label for="rmReps">반복 횟수</label><input type="number" id="rmReps" inputmode="numeric" min="1" max="30"></div>
+    <div class="panel">
+      <h2>1RM 계산</h2>
+      <div class="grid2">
+        <div><label class="f" for="rmWeight">들었던 무게(kg)</label><input type="number" id="rmWeight" inputmode="decimal" min="1"></div>
+        <div><label class="f" for="rmReps">반복 횟수</label><input type="number" id="rmReps" inputmode="numeric" min="1" max="30"></div>
       </div>
-      <label for="goal">훈련 목표</label>
+      <label class="f" for="goal">훈련 목표</label>
       <select id="goal">
         <option value="1">근력 (90 / 85 / 80%)</option>
         <option value="2" selected>근비대 (75 / 70 / 65%)</option>
         <option value="3">근지구력 (60 / 55 / 50%)</option>
       </select>
-      <button class="btn-main" onclick="calcOneRM()">계산하기</button>
-      <div class="msg error" id="rmMsg"></div>
+      <button class="go" onclick="calcOneRM()">1RM 계산</button>
+      <div class="msg error" id="rmMsg" aria-live="polite"></div>
 
-      <div class="result" id="rmResult">
-        <div style="font-size:13px;color:var(--sub)">예상 1RM</div>
-        <div class="big" id="rmValue">0kg</div>
-        <div style="margin-top:10px;font-weight:bold" id="rmGoalName"></div>
+      <div class="rm-result hidden" id="rmResult">
+        <div class="rm-top">
+          <span class="cap">예상 1RM</span>
+          <span class="val" id="rmValue">0</span>
+        </div>
+        <div class="rm-goal" id="rmGoalName"></div>
         <div id="rmBars"></div>
       </div>
     </div>
@@ -208,32 +374,37 @@
 
   <!-- 오른쪽: 통계 + 기록 -->
   <section>
-    <div class="card">
-      <h2>운동 통계</h2>
-      <div class="stats">
-        <div class="stat"><div class="label">운동 개수</div><div class="value" id="statCount">0<span class="unit">개</span></div></div>
-        <div class="stat"><div class="label">총 볼륨</div><div class="value" id="statVolume">0<span class="unit">kg</span></div></div>
-        <div class="stat"><div class="label">소모 칼로리</div><div class="value" id="statKcal">0<span class="unit">kcal</span></div></div>
-        <div class="stat"><div class="label">최고 1RM</div><div class="value" id="statBest">-</div></div>
-      </div>
+    <div class="stats">
+      <div class="stat"><div class="cap">운동</div><div class="v" id="statCount">0<small>개</small></div></div>
+      <div class="stat"><div class="cap">총 볼륨</div><div class="v" id="statVolume">0<small>kg</small></div></div>
+      <div class="stat"><div class="cap">소모 칼로리</div><div class="v" id="statKcal">0<small>kcal</small></div></div>
     </div>
 
-    <div class="card">
-      <div class="list-head">
-        <h2>운동 기록</h2>
-        <div class="filter">
-          <button class="active" data-f="all" onclick="setFilter('all')">전체</button>
-          <button data-f="strength" onclick="setFilter('strength')">근력</button>
-          <button data-f="cardio" onclick="setFilter('cardio')">유산소</button>
-          <button class="btn-small" onclick="clearAll()">전체 삭제</button>
-        </div>
+    <div class="rec-head">
+      <h2>운동 기록</h2>
+      <div class="filters">
+        <button class="active" data-f="all" onclick="setFilter('all')">전체</button>
+        <button data-f="strength" onclick="setFilter('strength')">근력</button>
+        <button data-f="cardio" onclick="setFilter('cardio')">유산소</button>
+        <button class="clear" onclick="clearAll()">전체 삭제</button>
       </div>
-      <ul class="records" id="recordList"></ul>
     </div>
+    <ul class="records" id="recordList"></ul>
   </section>
 </main>
 
-<footer>기록은 이 브라우저에 자동 저장됩니다 · 1RM 공식: Epley (무게 × (1 + 횟수 ÷ 30))</footer>
+<footer>
+  <div>1RM은 Epley 공식(무게 × (1 + 횟수 ÷ 30))으로 계산합니다. 원판 그림은 20kg 바벨 기준이고, 기록은 이 브라우저에 저장됩니다.</div>
+  <div class="legend">
+    <span><i class="p25"></i>25kg</span>
+    <span><i class="p20"></i>20kg</span>
+    <span><i class="p15"></i>15kg</span>
+    <span><i class="p10"></i>10kg</span>
+    <span><i class="p5"></i>5kg</span>
+    <span><i class="p2-5"></i>2.5kg</span>
+    <span><i class="p1-25"></i>1.25kg</span>
+  </div>
+</footer>
 
 <script>
 // ================================================================
@@ -247,7 +418,6 @@ function calc1RM(weight, reps) {
   return weight * (1 + reps / 30);
 }
 
-// 소수점 한 자리로 표시
 function fmt(n) {
   return (Math.round(n * 10) / 10).toFixed(1);
 }
@@ -256,11 +426,11 @@ function fmt(n) {
 class Exercise {
   constructor(name) {
     if (new.target === Exercise) {
-      throw new Error("Exercise는 직접 만들 수 없습니다."); // 추상 클래스처럼 막기
+      throw new Error("Exercise는 직접 만들 수 없습니다.");
     }
     this.name = name;
   }
-  getType()         { throw new Error("재정의 필요"); }  // 순수 가상 함수 역할
+  getType()         { throw new Error("재정의 필요"); }
   calcVolume()      { throw new Error("재정의 필요"); }
   calcCalories(bw)  { throw new Error("재정의 필요"); }
   getDetail()       { return ""; }
@@ -275,15 +445,14 @@ class StrengthExercise extends Exercise {
     this.sets = sets;
   }
   getType() { return "strength"; }
-  calcVolume() { return this.weight * this.reps * this.sets; }   // 무게 x 횟수 x 세트
+  calcVolume() { return this.weight * this.reps * this.sets; }
   calcCalories(bodyWeight) {
-    // MET 5.0, 1세트당 휴식 포함 2분
-    const hours = this.sets * 2 / 60;
+    const hours = this.sets * 2 / 60;      // MET 5.0, 세트당 휴식 포함 2분
     return 5.0 * bodyWeight * hours;
   }
   calc1RM() { return calc1RM(this.weight, this.reps); }
   getDetail() {
-    return `${this.weight}kg × ${this.reps}회 × ${this.sets}세트 · 예상 1RM ${fmt(this.calc1RM())}kg`;
+    return `${this.weight}kg × ${this.reps}회 × ${this.sets}세트, 예상 1RM <b>${fmt(this.calc1RM())}kg</b>`;
   }
 }
 
@@ -297,7 +466,6 @@ class CardioExercise extends Exercise {
   getType() { return "cardio"; }
   calcVolume() { return 0; }
   calcCalories(bodyWeight) {
-    // 강도에 따라 MET 값이 달라짐
     let met;
     switch (this.intensity) {
       case 1: met = 3.5; break;   // 걷기
@@ -308,41 +476,35 @@ class CardioExercise extends Exercise {
   }
   getDetail() {
     const level = ["", "가볍게", "보통", "강하게"];
-    return `${this.minutes}분 · 강도 ${level[this.intensity]}`;
+    return `${this.minutes}분, 강도 ${level[this.intensity]}`;
   }
 }
 
 // 운동 기록 관리 클래스 (C++의 WorkoutLog)
 class WorkoutLog {
   constructor() { this.list = []; }
-
   add(ex) { this.list.push(ex); this.save(); }
-
   remove(index) { this.list.splice(index, 1); this.save(); }
-
   clear() { this.list = []; this.save(); }
 
   getStats(bodyWeight) {
     let totalVolume = 0, totalCalories = 0, best = null;
     for (const ex of this.list) {
-      totalVolume += ex.calcVolume();              // 오버라이딩된 함수가 호출됨
+      totalVolume += ex.calcVolume();              // 재정의된 함수가 호출됨
       totalCalories += ex.calcCalories(bodyWeight);
-      // C++의 dynamic_cast 대신 instanceof로 근력 운동만 골라냄
-      if (ex instanceof StrengthExercise) {
+      if (ex instanceof StrengthExercise) {        // C++의 dynamic_cast 역할
         if (best === null || ex.calc1RM() > best.calc1RM()) best = ex;
       }
     }
     return { count: this.list.length, totalVolume, totalCalories, best };
   }
 
-  // 브라우저에 저장 (새로고침해도 기록 유지)
   save() {
     try {
       const data = this.list.map(ex => ({ type: ex.getType(), ...ex }));
       localStorage.setItem("workoutLog", JSON.stringify(data));
     } catch (e) { /* 저장 불가한 환경이면 무시 */ }
   }
-
   load() {
     try {
       const data = JSON.parse(localStorage.getItem("workoutLog") || "[]");
@@ -354,11 +516,69 @@ class WorkoutLog {
 }
 
 // ================================================================
+//  원판 계산 (20kg 바벨 기준, 한쪽에 끼울 원판)
+// ================================================================
+const BAR = 20;
+const PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+
+function plateLoad(kg) {
+  let perSide = Math.max(0, (kg - BAR) / 2);
+  const plates = [];
+  for (const p of PLATES) {
+    while (perSide >= p - 1e-9) { plates.push(p); perSide -= p; }
+  }
+  const loaded = BAR + plates.reduce((a, b) => a + b, 0) * 2;
+  return { plates, loaded };
+}
+
+function plateClass(p) { return "p" + String(p).replace(".", "-"); }
+
+// 원판 크기: 큰 원판(10~25kg)은 높이가 같고 두께만 다름 (실제 범퍼 원판처럼)
+function plateSize(p, scale) {
+  const h = { 25: 1, 20: 1, 15: 1, 10: 1, 5: 0.62, 2.5: 0.48, 1.25: 0.38 }[p];
+  const w = { 25: 24, 20: 21, 15: 18, 10: 15, 5: 12, 2.5: 9, 1.25: 7 }[p];
+  return { h: h * scale, w: Math.max(4, Math.round(w * (scale >= 100 ? 1 : 0.42))) };
+}
+
+function plateHTML(p, scale, animate, i) {
+  const s = plateSize(p, scale);
+  const delay = animate ? `animation-delay:${i * 60}ms;` : "";
+  return `<div class="plate ${plateClass(p)}${animate ? " in" : ""}" style="height:${s.h}px;width:${s.w}px;${delay}"></div>`;
+}
+
+// 양쪽이 다 있는 큰 바벨 (상단)
+function bigBarbellHTML(plates, animate) {
+  const side = plates.map((p, i) => plateHTML(p, 130, animate, i)).join("");
+  return `
+    <div class="sleeve"></div>
+    <div class="side left">${side}</div>
+    <div class="collar"></div>
+    <div class="shaft"></div>
+    <div class="collar"></div>
+    <div class="side">${side}</div>
+    <div class="sleeve"></div>`;
+}
+
+// 한쪽만 보여주는 작은 바벨 (추천 중량 줄)
+function miniBarbellHTML(plates, animate) {
+  return `<div class="mini barbell" style="height:46px;justify-content:flex-start">
+    <div class="shaft"></div><div class="collar"></div>
+    <div class="plates">${plates.map((p, i) => plateHTML(p, 42, animate, i)).join("")}</div>
+    <div class="sleeve-end"></div></div>`;
+}
+
+function plateText(plates) {
+  if (plates.length === 0) return "빈 바벨";
+  return "한쪽 " + plates.map(p => p).join(" + ");
+}
+
+// ================================================================
 //  화면 동작
 // ================================================================
 const log = new WorkoutLog();
 let currentType = "strength";
 let currentFilter = "all";
+let lastBestKey = "";
 
 const $ = id => document.getElementById(id);
 
@@ -367,15 +587,13 @@ function getBodyWeight() {
   return (bw >= 20 && bw <= 300) ? bw : 75;
 }
 
-// 근력 / 유산소 탭 선택 → 입력칸이 바뀜
 function selectType(type) {
   currentType = type;
   $("tabStrength").classList.toggle("active", type === "strength");
   $("tabCardio").classList.toggle("active", type === "cardio");
   $("strengthInputs").classList.toggle("hidden", type !== "strength");
   $("cardioInputs").classList.toggle("hidden", type !== "cardio");
-  $("addBtn").style.background = type === "strength" ? "var(--main)" : "var(--cardio)";
-  $("exName").placeholder = type === "strength" ? "예) 벤치 프레스" : "예) 러닝머신";
+  $("exName").placeholder = type === "strength" ? "벤치 프레스" : "러닝머신";
 }
 
 function showMsg(id, text, ok) {
@@ -393,7 +611,7 @@ function readNumber(id, min, max) {
 
 function addExercise() {
   const name = $("exName").value.trim();
-  if (name === "") { showMsg("addMsg", "운동 이름을 입력하세요."); return; }
+  if (name === "") { showMsg("addMsg", "운동 이름을 입력하세요."); $("exName").focus(); return; }
 
   let ex;
   if (currentType === "strength") {
@@ -401,7 +619,7 @@ function addExercise() {
     const r = readNumber("reps", 1, 100);
     const s = readNumber("sets", 1, 50);
     if (w === null || r === null || s === null) {
-      showMsg("addMsg", "무게 0~1000, 횟수 1~100, 세트 1~50 사이로 입력하세요.");
+      showMsg("addMsg", "무게는 0~1000kg, 횟수는 1~100회, 세트는 1~50 사이로 입력하세요.");
       return;
     }
     ex = new StrengthExercise(name, w, Math.round(r), Math.round(s));
@@ -412,7 +630,7 @@ function addExercise() {
   }
 
   log.add(ex);
-  showMsg("addMsg", `'${name}' 기록이 추가되었습니다.`, true);
+  showMsg("addMsg", `${name} 기록을 추가했습니다.`, true);
   ["exName", "weight", "reps", "sets", "minutes"].forEach(id => $(id).value = "");
   $("exName").focus();
   render();
@@ -426,65 +644,78 @@ function deleteRecord(index) {
 function clearAll() {
   if (log.list.length === 0) return;
   log.clear();
-  showMsg("addMsg", "모든 기록을 삭제했습니다.", true);
+  showMsg("addMsg", "기록을 모두 삭제했습니다.", true);
   render();
 }
 
 function setFilter(f) {
   currentFilter = f;
-  document.querySelectorAll(".filter button[data-f]").forEach(b =>
+  document.querySelectorAll(".filters button[data-f]").forEach(b =>
     b.classList.toggle("active", b.dataset.f === f));
   render();
 }
 
-// 화면 다시 그리기 (기록 목록 + 통계)
 function render() {
+  // 기록 목록
   const ul = $("recordList");
   ul.innerHTML = "";
-
   const items = log.list
     .map((ex, i) => ({ ex, i }))
     .filter(o => currentFilter === "all" || o.ex.getType() === currentFilter);
 
   if (items.length === 0) {
-    ul.innerHTML = '<li class="empty">아직 기록이 없습니다. 왼쪽에서 운동을 추가해 보세요.</li>';
+    const msg = log.list.length === 0
+      ? "아직 기록이 없습니다. 왼쪽에서 첫 운동을 추가해 보세요."
+      : "이 종류의 기록이 없습니다.";
+    ul.innerHTML = `<li class="empty">${msg}</li>`;
   }
 
   for (const { ex, i } of items) {
-    const isStr = ex.getType() === "strength";
+    const t = ex.getType();
     const li = document.createElement("li");
     li.innerHTML = `
-      <span class="badge ${ex.getType()}">${isStr ? "근력" : "유산소"}</span>
-      <div class="rec-body">
-        <div class="rec-name"></div>
+      <div class="edge ${t}"></div>
+      <div>
+        <div><span class="rec-kind ${t}">${t === "strength" ? "근력" : "유산소"}</span><span class="rec-name"></span></div>
         <div class="rec-detail">${ex.getDetail()}</div>
       </div>
-      <button class="btn-del" onclick="deleteRecord(${i})">삭제</button>`;
+      <button class="del" onclick="deleteRecord(${i})" aria-label="삭제">삭제</button>`;
     li.querySelector(".rec-name").textContent = ex.name;   // 이름은 텍스트로만 넣기
     ul.appendChild(li);
   }
 
+  // 통계
   const st = log.getStats(getBodyWeight());
-  $("statCount").innerHTML = `${st.count}<span class="unit">개</span>`;
-  $("statVolume").innerHTML = `${Math.round(st.totalVolume).toLocaleString()}<span class="unit">kg</span>`;
-  $("statKcal").innerHTML = `${Math.round(st.totalCalories)}<span class="unit">kcal</span>`;
+  $("statCount").innerHTML = `${st.count}<small>개</small>`;
+  $("statVolume").innerHTML = `${Math.round(st.totalVolume).toLocaleString()}<small>kg</small>`;
+  $("statKcal").innerHTML = `${Math.round(st.totalCalories)}<small>kcal</small>`;
+
+  // 상단 바벨: 최고 1RM
   if (st.best) {
-    $("statBest").innerHTML = `${fmt(st.best.calc1RM())}<span class="unit">kg</span>`;
-    $("statBest").title = st.best.name;
-    $("statBest").insertAdjacentHTML("beforeend", `<div class="unit" style="font-size:12px"></div>`);
-    $("statBest").lastChild.textContent = st.best.name;
+    const oneRM = st.best.calc1RM();
+    const pl = plateLoad(oneRM);
+    $("heroNum").innerHTML = `${fmt(oneRM)}<small>kg</small>`;
+    $("heroWho").textContent = st.best.name;
+    $("heroLoad").textContent = `${pl.loaded}kg 로딩 (${plateText(pl.plates)})`;
+    const key = st.best.name + oneRM;
+    $("heroBar").innerHTML = bigBarbellHTML(pl.plates, key !== lastBestKey);
+    lastBestKey = key;
   } else {
-    $("statBest").textContent = "-";
+    $("heroNum").innerHTML = `0<small>kg</small>`;
+    $("heroWho").textContent = "근력 운동을 추가하면 여기에 올라갑니다.";
+    $("heroLoad").textContent = "";
+    $("heroBar").innerHTML = bigBarbellHTML([], false);
+    lastBestKey = "";
   }
 }
 
-// 1RM 계산 + 목표별 추천 중량
+// 1RM 계산 + 목표별 추천 중량 + 끼울 원판
 function calcOneRM() {
   const w = readNumber("rmWeight", 1, 1000);
   const r = readNumber("rmReps", 1, 30);
   if (w === null || r === null) {
-    $("rmMsg").textContent = "무게 1~1000kg, 횟수 1~30회 사이로 입력하세요.";
-    $("rmResult").classList.remove("show");
+    $("rmMsg").textContent = "무게는 1~1000kg, 횟수는 1~30회 사이로 입력하세요.";
+    $("rmResult").classList.add("hidden");
     return;
   }
   $("rmMsg").textContent = "";
@@ -497,25 +728,28 @@ function calcOneRM() {
     default:  goalName = "근지구력"; percents = [60, 55, 50];
   }
 
-  $("rmValue").textContent = fmt(oneRM) + "kg";
-  $("rmGoalName").textContent = `[${goalName}] 추천 훈련 중량`;
-  $("rmBars").innerHTML = percents.map(p => `
-    <div class="bar-row">
-      <span>${p}%</span>
-      <div class="bar"><div style="width:${p}%"></div></div>
-      <span class="kg">${fmt(oneRM * p / 100)}kg</span>
-    </div>`).join("");
-  $("rmResult").classList.add("show");
+  $("rmValue").innerHTML = `${fmt(oneRM)}<small>kg</small>`;
+  $("rmGoalName").textContent = `${goalName} 목표 추천 중량`;
+  $("rmBars").innerHTML = percents.map(p => {
+    const kg = oneRM * p / 100;
+    const pl = plateLoad(kg);
+    return `
+      <div class="rm-row">
+        <span class="pct">${p}%</span>
+        ${miniBarbellHTML(pl.plates, true)}
+        <div class="kg"><b>${fmt(kg)}</b>kg<div>${pl.loaded}kg 로딩</div></div>
+      </div>`;
+  }).join("");
+  $("rmResult").classList.remove("hidden");
 }
 
-// 엔터키로도 추가 / 계산되게
+// 엔터키로도 추가 / 계산
 ["exName", "weight", "reps", "sets", "minutes"].forEach(id =>
   $(id).addEventListener("keydown", e => { if (e.key === "Enter") addExercise(); }));
 ["rmWeight", "rmReps"].forEach(id =>
   $(id).addEventListener("keydown", e => { if (e.key === "Enter") calcOneRM(); }));
 $("bodyWeight").addEventListener("input", render);
 
-// 시작할 때 저장된 기록 불러오기
 log.load();
 render();
 </script>
